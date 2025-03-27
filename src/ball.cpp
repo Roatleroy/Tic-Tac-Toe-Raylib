@@ -3,12 +3,12 @@
 
 X::X()
 {
-    XSprite = LoadTexture("resources/Sprite.png");
+    XSprite = LoadTexture("resources/SPRITE.png");
 }
 
 O::O()
 {
-    OSprite = LoadTexture("resources/Circle-icon-22/png");
+    OSprite = LoadTexture("resources/Circle-icon-22.png");
 }
 
 Grid::Grid()
