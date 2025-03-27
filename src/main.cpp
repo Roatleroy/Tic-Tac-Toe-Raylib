@@ -1,5 +1,4 @@
 #include <raylib.h>
-#include "ball.h"
 #include <iostream>
 #include "rlgl.h"
 #include "raymath.h"
@@ -59,6 +58,10 @@ int main()
 
         EndDrawing();
     }
+
+    UnloadTexture(XSprite);
+    UnloadTexture(OSprite);
+    UnloadTexture(GridSprite);
     
     CloseWindow();
 
