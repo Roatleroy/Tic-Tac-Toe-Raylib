@@ -6,7 +6,7 @@ class X{
     public:
 
     X();
-    //~X();
+    ~X();
     void XDraw();
 
     private:
@@ -19,7 +19,7 @@ class X{
 class O{
     public:
     O();
-    //~O();
+    ~O();
     void ODraw();
 
     private:
@@ -32,7 +32,7 @@ class Grid
     public:
 
     Grid();
-    //~Grid();
+    ~Grid();
     void GridDraw();
 
     private:

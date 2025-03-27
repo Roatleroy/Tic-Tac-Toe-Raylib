@@ -6,14 +6,27 @@ X::X()
     XSprite = LoadTexture("resources/SPRITE.png");
 }
 
+X::~X()
+{
+    UnloadTexture(XSprite);
+}
+
 O::O()
 {
     OSprite = LoadTexture("resources/Circle-icon-22.png");
+}
+O::~O()
+{
+    UnloadTexture(OSprite);
 }
 
 Grid::Grid()
 {
     GridSprite = LoadTexture("resources/Tic-tac-toe.png");
+}
+Grid::~Grid()
+{
+    UnloadTexture(GridSprite);
 }
 
 void X::XDraw()

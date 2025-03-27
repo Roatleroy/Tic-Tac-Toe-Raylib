@@ -15,12 +15,13 @@ int main()
     constexpr int screenWidth = 1200;
     constexpr int screenHeight = 800;
 
-    X Xs;
-    O Os;
-    Grid Grids;
-
+  
     //This sets the windows height and width
     InitWindow(screenWidth, screenHeight, "TIC-TAC-TOE");
+    
+  X Xs;
+    O Os;
+    Grid Grids;
 
     SetTargetFPS(60);
     
