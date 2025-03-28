@@ -2,36 +2,65 @@
 #include <iostream>
 #include "rlgl.h"
 #include "raymath.h"
+// ------------------------------------
 
-Texture2D XSprite;
-Texture2D XSpriteS;
+Vector2 StaticX = {300, -128};
+Vector2 StaticO = {300, 128};
 
-Texture2D OSprite;
-Texture2D OSpriteS;
+enum SpriteID {
+    SPRITE_X,
+    SPRITE_O,
+};
 
-Texture2D GridSprit;
+// Example Usage
+struct Sprite {
+    Texture2D texture;
+    Vector2 position;
+    Rectangle collider;
+    Vector2 lastPosition;
+    SpriteID id;
+};
 
-Vector2 Xint = {300, -128};
-Vector2 XintS = {300, -128};
-
-Vector2 Oint = {300, 128};
-Vector2 OintS = {300, 128};
+Sprite SpriteO;
+Sprite SpriteX;
+// -----------------------------------
 
 Vector2 ScreenParams;
-
-Rectangle Rect[9];
-
-Rectangle XRect;
-Rectangle ORect;
-
+//-----------------------------------
 bool ButtonDownX = false;
 bool ButtonDownO = false;
+//-----------------------------------
 
 void Draw();
 void OnUpdate();
 void CenterSprite(Texture2D Text, Vector2 Vec);
 void OnStart();
+void UpdateLastCollision(Sprite XorO, int i);
+void UpdatePosition(Sprite& SPRITE, Vector2& Mouse);
+void SetGridSquares (Sprite XorO, int i);
+
+//void GrabSpriteChange(Rectangle& SpriteBarrier, Vector2& Position, Vector2 SnapPos, Texture2D SPRITE, bool Other, bool Other2);
 Vector2 GetMousePositionScreenSpace();
+
+enum GridOwner
+{
+    X, O, EMPTY
+};
+
+struct GridSquare
+{
+    GridOwner Owner;
+    Vector2 Position;
+    Rectangle Collider;
+};
+
+struct Grid
+{
+    GridSquare GridSquares[9];
+};
+
+//------------------------------------
+Grid GameGrid;
 
 int main() 
 {
@@ -53,11 +82,12 @@ int main()
     camera.zoom = 1.0f;
 
 
-    XSprite = LoadTexture("resources/X.png");
-    OSprite = LoadTexture("resources/O.png");
-
-    XSpriteS = LoadTexture("resources/X.png");
-    OSpriteS = LoadTexture("resources/O.png");
+    SpriteX.texture = LoadTexture("resources/X.png");
+    SpriteO.texture = LoadTexture("resources/O.png");
+    SpriteX.position = StaticX;
+    SpriteO.position = StaticO;
+    SpriteX.id = SPRITE_X;
+    SpriteO.id = SPRITE_O;
 
     SetTargetFPS(60);
     
@@ -74,8 +104,8 @@ int main()
     }
 
 
-    UnloadTexture(XSprite);
-    UnloadTexture(OSprite);
+    UnloadTexture(SpriteX.texture);
+    UnloadTexture(SpriteO.texture);
     
     CloseWindow();
 
@@ -85,15 +115,30 @@ void Draw()
 {
     for (int i = 0; i < 9; i++)
     {
-        DrawRectangleLinesEx(Rect[i], 4, BLACK);
+        DrawRectangleLinesEx(GameGrid.GridSquares[i].Collider, 4, BLACK);
+        DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+        DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+
+        Vector2 Position1 = GameGrid.GridSquares[i].Position;
+
+        switch (GameGrid.GridSquares[i].Owner)
+        {
+            case X:
+                CenterSprite(SpriteX.texture, Position1);
+                break;
+            case O:
+                CenterSprite(SpriteO.texture, Position1);
+                break;
+            case EMPTY:
+                break;
+        }
     }
 
-    CenterSprite(XSprite, Xint);
-    CenterSprite(OSprite, Oint);
+    CenterSprite(SpriteX.texture, SpriteX.position);
+    CenterSprite(SpriteO.texture, SpriteO.position);
 
-    CenterSprite(XSpriteS, XintS);
-    CenterSprite(OSpriteS, OintS);
-    
+    CenterSprite(SpriteX.texture, StaticX);
+    CenterSprite(SpriteO.texture, StaticO);
 }
 
 void OnStart()
@@ -102,91 +147,150 @@ void OnStart()
     {
         float tilesize = 128.0f;
 
+        GameGrid.GridSquares[i].Owner = EMPTY;
+
         int Row = i / 3;
         int Col = i % 3;
 
         float x = ((float)((Row * tilesize) - tilesize)) - 200;
         float y = ((float)((Col * tilesize) - tilesize));
 
+        GameGrid.GridSquares[i].Position = {x, y};
         
-        Rect[i].x = x - (float)(tilesize / 2);
-        Rect[i].y = y - (float)(tilesize / 2);
+        GameGrid.GridSquares[i].Collider.x = x - (float)(tilesize / 2);
+        GameGrid.GridSquares[i].Collider.y = y - (float)(tilesize / 2);
 
-        Rect[i].height = tilesize;
-        Rect[i].width = tilesize;
+        GameGrid.GridSquares[i].Collider.height = tilesize;
+        GameGrid.GridSquares[i].Collider.width = tilesize;
     }
 
     // Creates Barrier around X Sprite
-    XRect.x = (float)(Xint.x - (XSprite.height/2));
-    XRect.y = (float)(Xint.y - (XSprite.width/2));
-    XRect.width = XSprite.width;
-    XRect.height = XSprite.height;
+    SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
+    SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
+    SpriteX.collider.width = SpriteX.texture.width;
+    SpriteX.collider.height = SpriteX.texture.height;
 
     // Creates Barrier around Y Sprite
-    ORect.x = (float)(Oint.x - (OSprite.height/2));
-    ORect.y = (float)(Oint.y - (OSprite.width/2));
-    ORect.width = OSprite.width;
-    ORect.height = OSprite.height;
+    SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
+    SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
+    SpriteO.collider.width = SpriteO.texture.width;
+    SpriteO.collider.height = SpriteO.texture.height;
 }
 
-void CenterSprite(Texture2D Text, Vector2 Vec)
+//Centers Drawn Textures
+void CenterSprite(Texture2D Texture, Vector2 Position)
 {
-    Vector2 origin = {(float)(Text.width/2), (float)(Text.height/2)};
-    Vector2 centeredPosition = {Vec.x - origin.x, Vec.y - origin.y};
-    DrawTextureEx(Text, centeredPosition, 0.0f, 1.0f, WHITE);
+    Vector2 origin = {(float)(Texture.width/2), (float)(Texture.height/2)};
+    Vector2 centeredPosition = {Position.x - origin.x, Position.y - origin.y};
+    DrawTextureEx(Texture, centeredPosition, 0.0f, 1.0f, WHITE);
 
 }
 
-void UpdatePosition(Vector2& INT, Vector2& Mouse, Rectangle& Rect)
+//Centers Sprite Position to Current Mouse Position
+void UpdatePosition(Sprite& SPRITE, Vector2& Mouse)
 {
-    INT.x = Mouse.x;
-    INT.y = Mouse.y;
+    SPRITE.position.x = Mouse.x;
+    SPRITE.position.y = Mouse.y;
 
-    Rect.x = (float)(INT.x - (XSprite.height/2));
-    Rect.y = (float)(INT.y - (XSprite.width/2));
+    SPRITE.collider.x = (float)(SPRITE.position.x - (SpriteX.texture.height/2));
+    SPRITE.collider.y = (float)(SPRITE.position.y - (SpriteX.texture.width/2));
 
 }
 
 void OnUpdate()
-{ 
-    Vector2 Mouse = GetMousePositionScreenSpace();
+{  
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, XRect) && ButtonDownO != true)
+   Vector2 Mouse = GetMousePositionScreenSpace();
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, SpriteX.collider) && ButtonDownO != true)
     {
+        SpriteX.lastPosition
         ButtonDownX = true;
     }
-        
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && ButtonDownX)
     {
-        UpdatePosition(Xint, Mouse, XRect);
+        UpdatePosition(SpriteX, Mouse);
     }
     else
     {
-        Xint = {300, -128};
-        XRect.x = (float)(Xint.x - (XSprite.height/2));
-        XRect.y = (float)(Xint.y - (XSprite.width/2));
+        SpriteX.position = StaticX;
+        SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
+        SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
         ButtonDownX = false;
     }
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, ORect) && ButtonDownX != true)
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, SpriteO.collider) && ButtonDownX != true)
     {
         ButtonDownO = true;
     }
-
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && ButtonDownO)
     {
-        UpdatePosition(Oint, Mouse, ORect);
+        UpdatePosition(SpriteO, Mouse);
     }
     else
     {
-        Oint = {300, 128};
-        ORect.x = (float)(Oint.x - (XSprite.height/2));
-        ORect.y = (float)(Oint.y - (XSprite.width/2));
+        SpriteO.position = StaticO;
+        SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
+        SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
         ButtonDownO = false;
     }
+
+   
+    for (int i = 0; i < 9; i ++)
+    {
+        UpdateLastCollision(SpriteX, i);
+        UpdateLastCollision(SpriteO, i);
+    }
+        
     
 }
 
+/*
+void GrabSpriteChange(Rectangle& SpriteBarrier, Vector2& SpritePosition, Vector2 SnapPos, Texture2D SPRITE, bool Other, bool Other2)
+{
+    Vector2 Mouse = GetMousePositionScreenSpace();
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, SpriteBarrier) && Other != true)
+    {
+        Other2 = true;
+    }
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && Other2)
+    {
+        UpdatePosition(SpritePosition, Mouse, SpriteBarrier);
+    }
+    else
+    {
+        SpritePosition = SnapPos;
+        SpriteBarrier.x = (float)(SpritePosition.x - (SPRITE.height/2));
+        SpriteBarrier.y = (float)(SpritePosition.y - (SPRITE.width/2));
+        Other2 = false;
+    }
+
+}
+*/
+
+void SetGridSquares (Sprite XorO, int i)
+{
+    Vector2 PiecePosition = {XorO.position.x, XorO.position.y};
+
+        if (CheckCollisionPointRec(PiecePosition, GameGrid.GridSquares[i].Collider))
+        {   
+            if( XorO.id == SPRITE_X)
+            {
+                GameGrid.GridSquares[i].Owner = X;
+            }
+            if( XorO.id == SPRITE_O)
+            {
+                GameGrid.GridSquares[i].Owner = O;
+            }
+
+        }
+
+}
+void UpdateLastCollision(Sprite XorO, int i)
+{
+    
+}
 
 Vector2 GetMousePositionScreenSpace()
 {
