@@ -1,18 +1,15 @@
-#include <raylib.h>
 #include <iostream>
-#include "rlgl.h"
-#include "raymath.h"
-// ------------------------------------
+#include <string.h>
+#include <vector>
+#include "raylib.h"
 
-Vector2 StaticX = {300, -128};
-Vector2 StaticO = {300, 128};
 
+// FOR Draggable Sprite -----------------------------------
 enum SpriteID {
     SPRITE_X,
     SPRITE_O,
 };
 
-// Example Usage
 struct Sprite {
     Texture2D texture;
     Vector2 position;
@@ -20,22 +17,12 @@ struct Sprite {
     Vector2 initialPosition;
     SpriteID id;
     bool ButtonDown;
+    int Wins;
+    bool win;
 };
+//----------------------------------------------------------
 
-Sprite SpriteO;
-Sprite SpriteX;
-// -----------------------------------
-
-Vector2 ScreenParams;
-//-----------------------------------
-
-void Draw();
-void OnUpdate();
-void CenterSprite(Texture2D Text, Vector2 Vec);
-void OnStart();
-bool UpdateLastCollision(Sprite& Piece, int& index);
-Vector2 GetMousePositionScreenSpace();
-
+// GRID BOXES______________________________________________
 enum GridOwner
 {
     X, O, EMPTY
@@ -53,9 +40,42 @@ struct Grid
     GridSquare GridSquares[9];
 };
 
-//------------------------------------
-Grid GameGrid;
+// SYSTEM PROTOTYPES_____________________________________________
+void Draw();
 
+void OnUpdate();
+
+void CenterSprite(Texture2D Text, Vector2 Vec);
+
+void OnStart();
+
+bool UpdateLastCollision(Sprite& Piece, int& index);
+
+Vector2 GetMousePositionScreenSpace();
+
+void CheckWin(GridOwner ID);
+
+
+void menu();
+void home();
+
+//________________________________________________________________
+
+// System Variables----------------------------------------------------
+Vector2 StaticX = {300, -128};
+Vector2 StaticO = {300, 128};
+
+Sprite SpriteO;
+Sprite SpriteX;
+
+Vector2 ScreenParams;
+
+Texture2D House;
+
+Grid GameGrid;
+int pick = 0;
+
+//_________________________________________________________________
 int main() 
 {
 
@@ -69,6 +89,8 @@ int main()
     //This sets the windows height and width
     InitWindow(ScreenParams.x, ScreenParams.y, "TIC-TAC-TOE");
 
+    House = LoadTexture("resources/Home.png");
+
     Camera2D camera = { 0 };
     camera.target = (Vector2){ 0.0f, 0.0f};
     camera.offset = (Vector2){ScreenParams.x/2.0f, ScreenParams.y/2.0f};
@@ -81,11 +103,26 @@ int main()
 
     while (!WindowShouldClose())
     {
-        OnUpdate();
+        if (pick == 1) 
+        {
+            OnUpdate();
+        }
+           
         BeginDrawing();
             BeginMode2D(camera);
-                ClearBackground(darkGreen);
-            Draw();
+
+                if (pick == 0)
+                {
+                    menu();
+                }
+
+                if (pick == 1)
+                {
+                    ClearBackground(darkGreen);
+                    home();
+                    Draw();
+                }
+                    
         EndDrawing();
     }
 
@@ -97,13 +134,123 @@ int main()
 
 }
 
+
+
+void CheckWin(GridOwner ID)
+{
+
+    for (int row = 0; row < 3; row++)
+    {
+        if (GameGrid.GridSquares[row * 3].Owner == ID && GameGrid.GridSquares[(row * 3) + 1].Owner == ID && GameGrid.GridSquares[(row * 3) + 2].Owner == ID)
+        {
+            if (ID == X)
+            {
+                SpriteX.Wins +=1;
+                SpriteX.win = true;
+            }
+            else{
+                SpriteO.Wins +=1;
+                SpriteO.win = true;
+            }
+        }
+    }
+    for (int col = 0; col < 3; col++)
+    {
+        if (GameGrid.GridSquares[col].Owner == ID && GameGrid.GridSquares[col + 3].Owner == ID && GameGrid.GridSquares[col + 6].Owner == ID)
+        {
+            if (ID == X)
+            {
+                SpriteX.Wins +=1;
+                SpriteX.win = true;
+            }
+            else{
+                SpriteO.Wins +=1;
+                SpriteO.win = true;
+            }
+        }
+    }
+    if (GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID)
+    {
+        if (ID == X)
+            {
+                SpriteX.Wins +=1;
+                SpriteX.win = true;
+            }
+            else{
+                SpriteO.Wins +=1;
+                SpriteO.win = true;
+            }
+    }
+    if (GameGrid.GridSquares[2].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[6].Owner == ID)
+    {
+        if (ID == X)
+            {
+                SpriteX.Wins +=1;
+                SpriteX.win = true;
+            }
+            else{
+                SpriteO.Wins +=1;
+                SpriteO.win = true;
+            }
+    }
+}
+
+
+void menu()
+{
+    Vector2 Mouse = GetMousePositionScreenSpace();
+
+    const char* text1 = "Single Player"; 
+    const char* text2 = "Multiplayer";
+    Vector2 buttonSize = {200, 60};
+    Vector2 buttonPosition = {0, 0};
+    Rectangle rectButton1 = {buttonPosition.x - (buttonSize.x/2) - 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle rectButton2 = {buttonPosition.x - (buttonSize.x/2) + 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+   
+    ClearBackground(DARKGRAY);
+    DrawRectangle(rectButton1.x, rectButton1.y, buttonSize.x, buttonSize.y, BLACK);
+    DrawRectangleLinesEx(rectButton1, 4, RED);
+    DrawRectangle(rectButton2.x, rectButton2.y, buttonSize.x, buttonSize.y, BLACK);
+    DrawRectangleLinesEx(rectButton2, 4, RED);
+    DrawText(text1, (rectButton1.x + 35), (rectButton1.y + 20), 20, WHITE);
+    DrawText(text2, (rectButton2.x + 45), (rectButton2.y + 20), 20, WHITE);
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, rectButton1))
+    {
+        pick = 1;
+    }
+    else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, rectButton2))
+    {
+        pick = 1;
+    }
+}
+
+void home()
+{
+    Vector2 Mouse = GetMousePositionScreenSpace();
+    Vector2 buttonPosition = {565, -350};
+    Rectangle Home = {(float)(buttonPosition.x - (House.width/2)), (float)(buttonPosition.y - (House.height/2)), (float)House.width, (float)House.height};
+    Vector2 Adjust = {buttonPosition.x - House.width/2 + 5, buttonPosition.y - House.height/2 + 5};
+
+    DrawRectangleLinesEx(Home, 4, BLACK);
+    DrawTextureEx(House, Adjust, 0.0f, 0.8f, WHITE);
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Home))
+    {
+        pick = 0;
+    }
+
+}
+
+
 void Draw()
 {
     for (int i = 0; i < 9; i++)
     {
         DrawRectangleLinesEx(GameGrid.GridSquares[i].Collider, 4, BLACK);
-        DrawRectangleLinesEx(SpriteX.collider, 4, RED);
-        DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+
+        //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+        //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
 
         Vector2 Position1 = GameGrid.GridSquares[i].Position;
 
@@ -206,10 +353,12 @@ void OnUpdate()
         if (UpdateLastCollision(SpriteX, index) && GameGrid.GridSquares[index].Owner == EMPTY)
         {
             GameGrid.GridSquares[index].Owner = X;
+            CheckWin(X);
         }
         if (UpdateLastCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY)
         {
             GameGrid.GridSquares[index].Owner = O;
+            CheckWin(O);
         }
 
         SpriteX.ButtonDown = false;
