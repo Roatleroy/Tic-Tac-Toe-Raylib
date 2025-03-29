@@ -273,18 +273,36 @@ void Draw()
     CenterSprite(SpriteX.texture, StaticX);
     CenterSprite(SpriteO.texture, StaticO);
 
+    if (SpriteX.win)
+    {
+        const char* WinText = "YOU WIN X";
+        DrawText(WinText, -100, -300, 40, WHITE);
+    }
+    if (SpriteO.win)
+    {
+        const char* WinText = "YOU WIN O";
+        DrawText(WinText, -100, -300, 40, WHITE);
+    }
+
 }
 
 void OnStart()
 {
     SpriteX.texture = LoadTexture("resources/X.png");
-    SpriteO.texture = LoadTexture("resources/O.png");
     SpriteX.position = StaticX;
-    SpriteO.position = StaticO;
     SpriteX.initialPosition = StaticX;
-    SpriteO.initialPosition = StaticO;
     SpriteX.id = SPRITE_X;
+    SpriteX.ButtonDown = false;
+    SpriteX.Wins = 0;
+    SpriteX.win = false;
+
+    SpriteO.texture = LoadTexture("resources/O.png");
+    SpriteO.position = StaticO;
+    SpriteO.initialPosition = StaticO;
     SpriteO.id = SPRITE_O;
+    SpriteO.ButtonDown = false;
+    SpriteO.Wins = 0;
+    SpriteO.win = false;
 
     for (int i = 0; i < 9; i++)
     {
