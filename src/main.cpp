@@ -49,11 +49,13 @@ void CenterSprite(Texture2D Text, Vector2 Vec);
 
 void OnStart();
 
-bool UpdateLastCollision(Sprite& Piece, int& index);
+bool HasGridCollision(Sprite& Piece, int& index);
 
 Vector2 GetMousePositionScreenSpace();
 
 void CheckWin(GridOwner ID);
+
+bool CheckDraw();
 
 
 void menu();
@@ -169,7 +171,8 @@ void CheckWin(GridOwner ID)
             }
         }
     }
-    if (GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID)
+    if ((GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID) ||
+        (GameGrid.GridSquares[2].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[6].Owner == ID))
     {
         if (ID == X)
             {
@@ -181,20 +184,26 @@ void CheckWin(GridOwner ID)
                 SpriteO.win = true;
             }
     }
-    if (GameGrid.GridSquares[2].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[6].Owner == ID)
+
+    if (CheckDraw() && (SpriteX.win != true && SpriteO.win != true))
     {
-        if (ID == X)
-            {
-                SpriteX.Wins +=1;
-                SpriteX.win = true;
-            }
-            else{
-                SpriteO.Wins +=1;
-                SpriteO.win = true;
-            }
+        SpriteO.win = true;
+        SpriteX.win = true;
     }
+
 }
 
+bool CheckDraw()
+{
+    for (int i = 0; i < 9; i++)
+    {
+        if (GameGrid.GridSquares[i].Owner == EMPTY)
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 void menu()
 {
@@ -273,16 +282,22 @@ void Draw()
     CenterSprite(SpriteX.texture, StaticX);
     CenterSprite(SpriteO.texture, StaticO);
 
-    if (SpriteX.win)
+    if (SpriteO.win && SpriteX.win)
+    {
+        const char* Draw_Text = "You've Drawn";
+        DrawText(Draw_Text, -100, -300, 40, WHITE);
+    }
+    else if (SpriteX.win)
     {
         const char* WinText = "YOU WIN X";
         DrawText(WinText, -100, -300, 40, WHITE);
     }
-    if (SpriteO.win)
+    else if (SpriteO.win)
     {
         const char* WinText = "YOU WIN O";
         DrawText(WinText, -100, -300, 40, WHITE);
     }
+    
 
 }
 
@@ -368,12 +383,12 @@ void OnUpdate()
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
         int index = 0;
-        if (UpdateLastCollision(SpriteX, index) && GameGrid.GridSquares[index].Owner == EMPTY)
+        if (HasGridCollision(SpriteX, index) && GameGrid.GridSquares[index].Owner == EMPTY)
         {
             GameGrid.GridSquares[index].Owner = X;
             CheckWin(X);
         }
-        if (UpdateLastCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY)
+        if (HasGridCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY)
         {
             GameGrid.GridSquares[index].Owner = O;
             CheckWin(O);
@@ -388,7 +403,7 @@ void OnUpdate()
 
 }
 
-bool UpdateLastCollision(Sprite& Piece, int& index)
+bool HasGridCollision(Sprite& Piece, int& index)
 {
     for(int i = 0; i < 9; i++)
         {
