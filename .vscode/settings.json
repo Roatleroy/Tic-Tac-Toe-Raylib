@@ -8,5 +8,20 @@
 		"**/*.o": true,
 		"**/*.exe": true,
 	},
-	"C_Cpp.errorSquiggles": "disabled"
+	"C_Cpp.errorSquiggles": "disabled",
+	"files.associations": {
+		"optional": "cpp",
+		"functional": "cpp",
+		"*.m": "cpp",
+		"charconv": "cpp",
+		"deque": "cpp",
+		"vector": "cpp",
+		"exception": "cpp",
+		"memory": "cpp",
+		"istream": "cpp",
+		"new": "cpp",
+		"ostream": "cpp",
+		"system_error": "cpp",
+		"*.tcc": "cpp"
+	}
 }

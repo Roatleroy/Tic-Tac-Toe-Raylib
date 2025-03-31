@@ -7,8 +7,10 @@
 // FOR Draggable Sprite -----------------------------------
 enum SpriteID {
     SPRITE_X,
-    SPRITE_O,
+    SPRITE_O
 };
+
+SpriteID user;
 
 struct Sprite {
     Texture2D texture;
@@ -41,7 +43,8 @@ struct Grid
 };
 
 // SYSTEM PROTOTYPES_____________________________________________
-void Draw();
+void DrawMultiplayer();
+void DrawSinglePlayer();
 
 void OnUpdate();
 
@@ -57,6 +60,11 @@ void CheckWin(GridOwner ID);
 
 bool CheckDraw();
 
+void drawWin();
+
+void resetBoard();
+
+void Choose();
 
 void menu();
 void home();
@@ -67,6 +75,8 @@ void home();
 Vector2 StaticX = {300, -128};
 Vector2 StaticO = {300, 128};
 
+Vector2 Static = {300, 0};
+
 Sprite SpriteO;
 Sprite SpriteX;
 
@@ -75,7 +85,18 @@ Vector2 ScreenParams;
 Texture2D House;
 
 Grid GameGrid;
-int pick = 0;
+
+enum pick
+{
+    Menu,
+    SinglePlayer,
+    MultiPlayer,
+    Choice
+};
+
+pick Picker = Menu;
+
+bool XorO;
 
 //_________________________________________________________________
 int main() 
@@ -105,7 +126,7 @@ int main()
 
     while (!WindowShouldClose())
     {
-        if (pick == 1) 
+        if (Picker != Menu) 
         {
             OnUpdate();
         }
@@ -113,21 +134,33 @@ int main()
         BeginDrawing();
             BeginMode2D(camera);
 
-                if (pick == 0)
-                {
+            switch (Picker)
+            {
+                case Menu:
                     menu();
-                }
-
-                if (pick == 1)
-                {
+                    break;
+                case MultiPlayer:
                     ClearBackground(darkGreen);
                     home();
-                    Draw();
-                }
+                    DrawMultiplayer();
+                    break;
+                case SinglePlayer:
+                    ClearBackground(darkGreen);
+                    home();
+                    DrawSinglePlayer();
+                    break;
+                case Choice:
+                    Choose();
+                    break;
+                default:
+                    ClearBackground(darkGreen);
+                    const char* error = "Single Player"; 
+                    DrawText(error, 0, 0, 20, WHITE);
+                    break;
+            }
                     
         EndDrawing();
     }
-
 
     UnloadTexture(SpriteX.texture);
     UnloadTexture(SpriteO.texture);
@@ -136,8 +169,8 @@ int main()
 
 }
 
-
-
+// Might want to change Check win to check both O and X at the same time so that
+// The AI algorithm can be checked for wins as well. 
 void CheckWin(GridOwner ID)
 {
 
@@ -208,30 +241,73 @@ bool CheckDraw()
 void menu()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
-
-    const char* text1 = "Single Player"; 
-    const char* text2 = "Multiplayer";
+   
     Vector2 buttonSize = {200, 60};
     Vector2 buttonPosition = {0, 0};
-    Rectangle rectButton1 = {buttonPosition.x - (buttonSize.x/2) - 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
-    Rectangle rectButton2 = {buttonPosition.x - (buttonSize.x/2) + 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Multi = {buttonPosition.x - (buttonSize.x/2) + 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
    
     ClearBackground(DARKGRAY);
-    DrawRectangle(rectButton1.x, rectButton1.y, buttonSize.x, buttonSize.y, BLACK);
-    DrawRectangleLinesEx(rectButton1, 4, RED);
-    DrawRectangle(rectButton2.x, rectButton2.y, buttonSize.x, buttonSize.y, BLACK);
-    DrawRectangleLinesEx(rectButton2, 4, RED);
-    DrawText(text1, (rectButton1.x + 35), (rectButton1.y + 20), 20, WHITE);
-    DrawText(text2, (rectButton2.x + 45), (rectButton2.y + 20), 20, WHITE);
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, rectButton1))
+    const char* text1 = "Single Player"; 
+    DrawRectangle(Single.x, Single.y, buttonSize.x, buttonSize.y, BLACK);
+    DrawRectangleLinesEx(Single, 4, RED);
+    DrawText(text1, (Single.x + 35), (Single.y + 20), 20, WHITE);
+
+    const char* text2 = "Multiplayer";
+    DrawRectangle(Multi.x, Multi.y, buttonSize.x, buttonSize.y, BLACK);
+    DrawRectangleLinesEx(Multi, 4, RED);
+    DrawText(text2, (Multi.x + 45), (Multi.y + 20), 20, WHITE);
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Single))
     {
-        pick = 1;
+        Picker = Choice;
     }
-    else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, rectButton2))
+    else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Multi))
     {
-        pick = 1;
+        Picker = MultiPlayer;
     }
+}
+
+void Choose()
+{
+    Vector2 Mouse = GetMousePositionScreenSpace();
+   
+    Vector2 buttonSize = {150, 60};
+    Vector2 buttonPosition = {0, 0};
+    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Multi = {buttonPosition.x - (buttonSize.x/2) + 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+
+    ClearBackground(DARKGRAY);
+
+    const char* Chooses = "What character do you want";
+    DrawText(Chooses, -200, -200, 30, WHITE);
+
+    const char* text1 = "X"; 
+    DrawRectangle(Single.x, Single.y, buttonSize.x, buttonSize.y, BLACK);
+    DrawRectangleLinesEx(Single, 4, RED);
+    DrawText(text1, (Single.x + 68), (Single.y + 17), 30, WHITE);
+
+    const char* text2 = "O";
+    DrawRectangle(Multi.x, Multi.y, buttonSize.x, buttonSize.y, BLACK);
+    DrawRectangleLinesEx(Multi, 4, RED);
+    DrawText(text2, (Multi.x + 68), (Multi.y + 17), 30, WHITE);
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Single))
+    {
+        Picker = SinglePlayer;
+        SpriteX.position = Static;
+        SpriteX.initialPosition = Static;
+        user = SPRITE_X;
+    }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Multi))
+    {
+        Picker = SinglePlayer;
+        SpriteO.position = Static;
+        SpriteO.initialPosition = Static;
+        user = SPRITE_O;
+    }
+    
 }
 
 void home()
@@ -246,13 +322,25 @@ void home()
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Home))
     {
-        pick = 0;
+        Picker = Menu;
+        resetBoard();
     }
 
 }
 
+void resetBoard()
+{
+    for (int i = 0; i < 9; i ++)
+    {
+        GameGrid.GridSquares[i].Owner = EMPTY;
+    }
+    SpriteO.win = false;
+    SpriteX.win = false;
+    SpriteO.Wins = 0;
+    SpriteX.Wins = 0;
+}
 
-void Draw()
+void DrawMultiplayer()
 {
     for (int i = 0; i < 9; i++)
     {
@@ -282,6 +370,15 @@ void Draw()
     CenterSprite(SpriteX.texture, StaticX);
     CenterSprite(SpriteO.texture, StaticO);
 
+   if (SpriteO.win || SpriteX.win )
+   {
+        drawWin();
+   }
+    
+}
+
+void drawWin()
+{
     if (SpriteO.win && SpriteX.win)
     {
         const char* Draw_Text = "You've Drawn";
@@ -297,7 +394,46 @@ void Draw()
         const char* WinText = "YOU WIN O";
         DrawText(WinText, -100, -300, 40, WHITE);
     }
-    
+}
+
+void DrawSinglePlayer()
+{
+    for (int i = 0; i < 9; i++)
+    {
+        DrawRectangleLinesEx(GameGrid.GridSquares[i].Collider, 4, BLACK);
+
+        Vector2 Position1 = GameGrid.GridSquares[i].Position;
+
+        switch (GameGrid.GridSquares[i].Owner)
+        {
+            case X:
+                CenterSprite(SpriteX.texture, Position1);
+                break;
+            case O:
+                CenterSprite(SpriteO.texture, Position1);
+                break;
+            case EMPTY:
+                break;
+        }
+    }
+
+    if (user == SPRITE_X)
+    {
+        CenterSprite(SpriteX.texture, SpriteX.position);
+        CenterSprite(SpriteX.texture, Static);
+        //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+    }
+    else
+    {
+        CenterSprite(SpriteO.texture, SpriteO.position);
+        CenterSprite(SpriteO.texture, Static);
+        //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+    }
+
+    if (SpriteO.win || SpriteX.win )
+    {
+        drawWin();
+    }
 
 }
 
@@ -367,11 +503,27 @@ void OnUpdate()
 
    Vector2 Mouse = GetMousePositionScreenSpace();
 
-   SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
-   SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
-   SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
-   SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
-
+   if (Picker == SinglePlayer)
+   {
+        if(user == SPRITE_X)
+        {
+            SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
+            SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
+        }
+        else
+        {
+            SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
+            SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
+        }
+   }
+   else 
+   {
+        SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
+        SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
+        SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
+        SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
+   }
+  
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     { 
         if(CheckCollisionPointRec(Mouse, SpriteX.collider))
@@ -415,7 +567,6 @@ bool HasGridCollision(Sprite& Piece, int& index)
         }
         return false;
 }
-
 
 Vector2 GetMousePositionScreenSpace()
 {
