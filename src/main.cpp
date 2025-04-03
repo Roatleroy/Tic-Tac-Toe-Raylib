@@ -22,7 +22,6 @@ struct Sprite {
     int Wins;
     bool win;
 };
-//----------------------------------------------------------
 
 // GRID BOXES______________________________________________
 enum GridOwner
@@ -43,6 +42,7 @@ struct Grid
 };
 
 // SYSTEM PROTOTYPES_____________________________________________
+
 void DrawMultiplayer();
 void DrawSinglePlayer();
 
@@ -226,6 +226,7 @@ void CheckWin(GridOwner ID)
 
 }
 
+// Checks for Instances of Game Draws
 bool CheckDraw()
 {
     for (int i = 0; i < 9; i++)
@@ -238,6 +239,7 @@ bool CheckDraw()
     return true;
 }
 
+// Displays Menu for GUI
 void menu()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
@@ -269,6 +271,8 @@ void menu()
     }
 }
 
+// When Player chooses Single Player they are asked if they want to be
+// X character or O character
 void Choose()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
@@ -310,6 +314,7 @@ void Choose()
     
 }
 
+// This is a Home button that goes back to the menu and resets the Game
 void home()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
@@ -328,6 +333,7 @@ void home()
 
 }
 
+// This Wipes the Board
 void resetBoard()
 {
     for (int i = 0; i < 9; i ++)
@@ -340,6 +346,7 @@ void resetBoard()
     SpriteX.Wins = 0;
 }
 
+// Draws the Multiplayer Game squares and Sprites
 void DrawMultiplayer()
 {
     for (int i = 0; i < 9; i++)
@@ -377,6 +384,7 @@ void DrawMultiplayer()
     
 }
 
+// This puts onto the screen that a user has won
 void drawWin()
 {
     if (SpriteO.win && SpriteX.win)
@@ -488,7 +496,6 @@ void OnStart()
     SpriteO.collider.width = SpriteO.texture.width;
     SpriteO.collider.height = SpriteO.texture.height;
 }
-
 //Centers Drawn Textures
 void CenterSprite(Texture2D Texture, Vector2 Position)
 {
