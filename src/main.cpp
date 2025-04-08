@@ -22,6 +22,7 @@ struct Sprite {
     int Wins;
     bool win;
 };
+//----------------------------------------------------------
 
 // GRID BOXES______________________________________________
 enum GridOwner
@@ -42,7 +43,6 @@ struct Grid
 };
 
 // SYSTEM PROTOTYPES_____________________________________________
-
 void DrawMultiplayer();
 void DrawSinglePlayer();
 
@@ -70,17 +70,16 @@ void menu();
 void home();
 
 //________________________________________________________________
+Vector2 ScreenParams {1280, 720};
 
 // System Variables----------------------------------------------------
-Vector2 StaticX = {300, -128};
-Vector2 StaticO = {300, 128};
+Vector2 StaticX = {float(ScreenParams.x * 0.25), -1 * float(ScreenParams.y * 0.16)};
+Vector2 StaticO = {float(ScreenParams.x * 0.25), float(ScreenParams.y * 0.16)};
 
-Vector2 Static = {300, 0};
+Vector2 Static = {float(ScreenParams.x * 0.25), 0};
 
 Sprite SpriteO;
 Sprite SpriteX;
-
-Vector2 ScreenParams;
 
 Texture2D House;
 
@@ -104,10 +103,6 @@ int main()
 
     //Set Color Based on RGB Values
     const Color darkGreen = {20, 160, 133, 255};
-
-    //this sets the variables for the windows height and width
-    ScreenParams.x = 1200;
-    ScreenParams.y = 800;
 
     //This sets the windows height and width
     InitWindow(ScreenParams.x, ScreenParams.y, "TIC-TAC-TOE");
@@ -134,6 +129,8 @@ int main()
         BeginDrawing();
             BeginMode2D(camera);
 
+            home();
+
             switch (Picker)
             {
                 case Menu:
@@ -141,12 +138,10 @@ int main()
                     break;
                 case MultiPlayer:
                     ClearBackground(darkGreen);
-                    home();
                     DrawMultiplayer();
                     break;
                 case SinglePlayer:
                     ClearBackground(darkGreen);
-                    home();
                     DrawSinglePlayer();
                     break;
                 case Choice:
@@ -226,7 +221,6 @@ void CheckWin(GridOwner ID)
 
 }
 
-// Checks for Instances of Game Draws
 bool CheckDraw()
 {
     for (int i = 0; i < 9; i++)
@@ -239,27 +233,27 @@ bool CheckDraw()
     return true;
 }
 
-// Displays Menu for GUI
 void menu()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
    
-    Vector2 buttonSize = {200, 60};
+    Vector2 buttonSize = {float(ScreenParams.x * 0.2), float(ScreenParams.y * 0.09)};
     Vector2 buttonPosition = {0, 0};
-    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
-    Rectangle Multi = {buttonPosition.x - (buttonSize.x/2) + 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - float(ScreenParams.x * 0.14), buttonPosition.y - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Multi = {buttonPosition.x - (buttonSize.x/2) + float(ScreenParams.x * 0.14), buttonPosition.y - (buttonSize.y/2), buttonSize.x, buttonSize.y};
    
     ClearBackground(DARKGRAY);
 
-    const char* text1 = "Single Player"; 
+    const char* text1 = "SinglePlayer"; 
     DrawRectangle(Single.x, Single.y, buttonSize.x, buttonSize.y, BLACK);
     DrawRectangleLinesEx(Single, 4, RED);
-    DrawText(text1, (Single.x + 35), (Single.y + 20), 20, WHITE);
+    DrawText(text1, (Single.x + float(ScreenParams.x * 0.023)), (Single.y + float(ScreenParams.x * 0.018)), int((ScreenParams.x + ScreenParams.y)/2) * 0.03, WHITE);
 
+    
     const char* text2 = "Multiplayer";
     DrawRectangle(Multi.x, Multi.y, buttonSize.x, buttonSize.y, BLACK);
     DrawRectangleLinesEx(Multi, 4, RED);
-    DrawText(text2, (Multi.x + 45), (Multi.y + 20), 20, WHITE);
+    DrawText(text2, (Multi.x + float(ScreenParams.x * 0.032)), (Multi.y + float(ScreenParams.x * 0.018)), int((ScreenParams.x + ScreenParams.y)/2) * 0.03, WHITE);
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Single))
     {
@@ -271,31 +265,29 @@ void menu()
     }
 }
 
-// When Player chooses Single Player they are asked if they want to be
-// X character or O character
 void Choose()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
    
-    Vector2 buttonSize = {150, 60};
+    Vector2 buttonSize = {float(ScreenParams.x * 0.125), float(ScreenParams.y * 0.075)};
     Vector2 buttonPosition = {0, 0};
-    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
-    Rectangle Multi = {buttonPosition.x - (buttonSize.x/2) + 150, buttonPosition.x - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - float(ScreenParams.x * 0.125), buttonPosition.y - (buttonSize.y/2), buttonSize.x, buttonSize.y};
+    Rectangle Multi = {buttonPosition.x - (buttonSize.x/2) + float(ScreenParams.x * 0.125), buttonPosition.y - (buttonSize.y/2), buttonSize.x, buttonSize.y};
 
     ClearBackground(DARKGRAY);
 
-    const char* Chooses = "What character do you want";
-    DrawText(Chooses, -200, -200, 30, WHITE);
+    const char* Chooses = "What character do you want?";
+    DrawText(Chooses, (-1 * (ScreenParams.x * 0.18)), (-1 * (ScreenParams.y * 0.25)), int((ScreenParams.x + ScreenParams.y)/2) * 0.03, WHITE);
 
     const char* text1 = "X"; 
     DrawRectangle(Single.x, Single.y, buttonSize.x, buttonSize.y, BLACK);
     DrawRectangleLinesEx(Single, 4, RED);
-    DrawText(text1, (Single.x + 68), (Single.y + 17), 30, WHITE);
+    DrawText(text1, (Single.x + (ScreenParams.x * 0.056)), (Single.y + (ScreenParams.y * 0.02125)), int((ScreenParams.x + ScreenParams.y)/2) * 0.03, WHITE);
 
     const char* text2 = "O";
     DrawRectangle(Multi.x, Multi.y, buttonSize.x, buttonSize.y, BLACK);
     DrawRectangleLinesEx(Multi, 4, RED);
-    DrawText(text2, (Multi.x + 68), (Multi.y + 17), 30, WHITE);
+    DrawText(text2, (Multi.x + (ScreenParams.x * 0.056)), (Multi.y + (ScreenParams.y * 0.02125)), int((ScreenParams.x + ScreenParams.y)/2) * 0.03, WHITE);
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Single))
     {
@@ -314,26 +306,27 @@ void Choose()
     
 }
 
-// This is a Home button that goes back to the menu and resets the Game
 void home()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
-    Vector2 buttonPosition = {565, -350};
-    Rectangle Home = {(float)(buttonPosition.x - (House.width/2)), (float)(buttonPosition.y - (House.height/2)), (float)House.width, (float)House.height};
-    Vector2 Adjust = {buttonPosition.x - House.width/2 + 5, buttonPosition.y - House.height/2 + 5};
+    Vector2 buttonPosition = {float(ScreenParams.x * 0.46), float((ScreenParams.y * -0.437))};
+
+    Rectangle Home = {(float)(buttonPosition.x - ((House.width * (ScreenParams.x + ScreenParams.y)/2) * 0.001)/2), (float)(buttonPosition.y - ((House.height * (ScreenParams.x + ScreenParams.y)/2)
+    * 0.001)/2), (float)(House.width * ((ScreenParams.x + ScreenParams.y)/2) * 0.00117), (float)(House.height * ((ScreenParams.x + ScreenParams.y)/2) * 0.00116)};
+
+    Vector2 Adjust = {float (buttonPosition.x - (House.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2) + float(ScreenParams.x * 0.004)), 
+    float(buttonPosition.y - (House.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2) + float(ScreenParams.y * 0.00625))};
 
     DrawRectangleLinesEx(Home, 4, BLACK);
-    DrawTextureEx(House, Adjust, 0.0f, 0.8f, WHITE);
+    DrawTextureEx(House, Adjust, 0.0f, float((ScreenParams.x + ScreenParams.y)/2) * 0.001, WHITE);
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Home))
     {
         Picker = Menu;
         resetBoard();
     }
-
 }
 
-// This Wipes the Board
 void resetBoard()
 {
     for (int i = 0; i < 9; i ++)
@@ -344,17 +337,15 @@ void resetBoard()
     SpriteX.win = false;
     SpriteO.Wins = 0;
     SpriteX.Wins = 0;
+    SpriteX.initialPosition = StaticX;
+    SpriteO.initialPosition = StaticO;
 }
 
-// Draws the Multiplayer Game squares and Sprites
 void DrawMultiplayer()
 {
     for (int i = 0; i < 9; i++)
     {
         DrawRectangleLinesEx(GameGrid.GridSquares[i].Collider, 4, BLACK);
-
-        //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
-        //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
 
         Vector2 Position1 = GameGrid.GridSquares[i].Position;
 
@@ -371,6 +362,9 @@ void DrawMultiplayer()
         }
     }
 
+    DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+    DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+
     CenterSprite(SpriteX.texture, SpriteX.position);
     CenterSprite(SpriteO.texture, SpriteO.position);
 
@@ -384,23 +378,22 @@ void DrawMultiplayer()
     
 }
 
-// This puts onto the screen that a user has won
 void drawWin()
 {
     if (SpriteO.win && SpriteX.win)
     {
         const char* Draw_Text = "You've Drawn";
-        DrawText(Draw_Text, -100, -300, 40, WHITE);
+        DrawText(Draw_Text, (ScreenParams.x * -0.0833), (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
     }
     else if (SpriteX.win)
     {
         const char* WinText = "YOU WIN X";
-        DrawText(WinText, -100, -300, 40, WHITE);
+        DrawText(WinText, (ScreenParams.x * -0.0833), (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
     }
     else if (SpriteO.win)
     {
         const char* WinText = "YOU WIN O";
-        DrawText(WinText, -100, -300, 40, WHITE);
+        DrawText(WinText, (ScreenParams.x * -0.0833) , (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
     }
 }
 
@@ -429,13 +422,13 @@ void DrawSinglePlayer()
     {
         CenterSprite(SpriteX.texture, SpriteX.position);
         CenterSprite(SpriteX.texture, Static);
-        //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+        DrawRectangleLinesEx(SpriteX.collider, 4, RED);
     }
     else
     {
         CenterSprite(SpriteO.texture, SpriteO.position);
         CenterSprite(SpriteO.texture, Static);
-        //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+        DrawRectangleLinesEx(SpriteO.collider, 4, RED);
     }
 
     if (SpriteO.win || SpriteX.win )
@@ -465,14 +458,14 @@ void OnStart()
 
     for (int i = 0; i < 9; i++)
     {
-        float tilesize = 128.0f;
+        float tilesize = float((ScreenParams.x + ScreenParams.y)/2) * 0.128;
 
         GameGrid.GridSquares[i].Owner = EMPTY;
 
         int Row = i / 3;
         int Col = i % 3;
 
-        float x = ((float)((Row * tilesize) - tilesize)) - 200;
+        float x = ((float)((Row * tilesize) - tilesize)) - (ScreenParams.x * 0.166);
         float y = ((float)((Col * tilesize) - tilesize));
 
         GameGrid.GridSquares[i].Position = {x, y};
@@ -485,23 +478,26 @@ void OnStart()
     }
 
     // Creates Barrier around X Sprite
-    SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
-    SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
-    SpriteX.collider.width = SpriteX.texture.width;
-    SpriteX.collider.height = SpriteX.texture.height;
+    SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+    SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+    SpriteX.collider.width = SpriteX.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001);
+    SpriteX.collider.height = SpriteX.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001);
 
     // Creates Barrier around Y Sprite
-    SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
-    SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
-    SpriteO.collider.width = SpriteO.texture.width;
-    SpriteO.collider.height = SpriteO.texture.height;
+    SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+    SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+    SpriteO.collider.width = SpriteO.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001);
+    SpriteO.collider.height = SpriteO.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001);
 }
+
 //Centers Drawn Textures
 void CenterSprite(Texture2D Texture, Vector2 Position)
 {
-    Vector2 origin = {(float)(Texture.width/2), (float)(Texture.height/2)};
-    Vector2 centeredPosition = {Position.x - origin.x, Position.y - origin.y};
-    DrawTextureEx(Texture, centeredPosition, 0.0f, 1.0f, WHITE);
+    //Vector2 origin = {(float)(Texture.width/2), (float)(Texture.height/2)};
+    Vector2 centeredPosition = {(float)(Position.x - (Texture.width * (((ScreenParams.x + ScreenParams.y) / 2) * 0.001)/2)), 
+        (float)(Position.y - (Texture.width * (((ScreenParams.x + ScreenParams.y) / 2) * 0.001)/2))};
+
+    DrawTextureEx(Texture, centeredPosition, 0.0f, float(((ScreenParams.x + ScreenParams.y)/2) * 0.001), WHITE);
 
 }
 
@@ -514,21 +510,21 @@ void OnUpdate()
    {
         if(user == SPRITE_X)
         {
-            SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
-            SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
+            SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+            SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
         }
         else
         {
-            SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
-            SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
+            SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+            SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
         }
    }
    else 
    {
-        SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height/2));
-        SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width/2));
-        SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height/2));
-        SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width/2));
+        SpriteX.collider.x = (float)(SpriteX.position.x - (SpriteX.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+        SpriteX.collider.y = (float)(SpriteX.position.y - (SpriteX.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+        SpriteO.collider.x = (float)(SpriteO.position.x - (SpriteO.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
+        SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
    }
   
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
