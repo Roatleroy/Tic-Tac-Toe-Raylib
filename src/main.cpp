@@ -95,7 +95,7 @@ enum pick
 
 pick Picker = Menu;
 
-bool XorO;
+bool XorO = true;
 
 //_________________________________________________________________
 int main() 
@@ -339,6 +339,7 @@ void resetBoard()
     SpriteX.Wins = 0;
     SpriteX.initialPosition = StaticX;
     SpriteO.initialPosition = StaticO;
+    XorO = true;
 }
 
 void DrawMultiplayer()
@@ -362,8 +363,8 @@ void DrawMultiplayer()
         }
     }
 
-    DrawRectangleLinesEx(SpriteX.collider, 4, RED);
-    DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+    //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+    //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
 
     CenterSprite(SpriteX.texture, SpriteX.position);
     CenterSprite(SpriteO.texture, SpriteO.position);
@@ -422,13 +423,13 @@ void DrawSinglePlayer()
     {
         CenterSprite(SpriteX.texture, SpriteX.position);
         CenterSprite(SpriteX.texture, Static);
-        DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+        //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
     }
     else
     {
         CenterSprite(SpriteO.texture, SpriteO.position);
         CenterSprite(SpriteO.texture, Static);
-        DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+        //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
     }
 
     if (SpriteO.win || SpriteX.win )
@@ -538,14 +539,16 @@ void OnUpdate()
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
         int index = 0;
-        if (HasGridCollision(SpriteX, index) && GameGrid.GridSquares[index].Owner == EMPTY)
+        if (HasGridCollision(SpriteX, index) && GameGrid.GridSquares[index].Owner == EMPTY && XorO == true)
         {
             GameGrid.GridSquares[index].Owner = X;
+            XorO = false;
             CheckWin(X);
         }
-        if (HasGridCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY)
+        if (HasGridCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY && XorO == false)
         {
             GameGrid.GridSquares[index].Owner = O;
+            XorO = true;
             CheckWin(O);
         }
 
