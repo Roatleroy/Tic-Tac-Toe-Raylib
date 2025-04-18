@@ -2,6 +2,7 @@
 #include <string.h>
 #include <vector>
 #include "raylib.h"
+#include <time.h>
 
 
 // FOR Draggable Sprite -----------------------------------
@@ -40,6 +41,7 @@ struct GridSquare
 struct Grid
 {
     GridSquare GridSquares[9];
+    int Count;
 };
 
 // SYSTEM PROTOTYPES_____________________________________________
@@ -69,8 +71,10 @@ void Choose();
 void menu();
 void home();
 
+void AIPAL();
+
 //________________________________________________________________
-Vector2 ScreenParams {1280, 720};
+Vector2 ScreenParams {1200, 720};
 
 // System Variables----------------------------------------------------
 Vector2 StaticX = {float(ScreenParams.x * 0.25), -1 * float(ScreenParams.y * 0.16)};
@@ -94,13 +98,11 @@ enum pick
 };
 
 pick Picker = Menu;
-
 bool XorO = true;
 
 //_________________________________________________________________
 int main() 
 {
-
     //Set Color Based on RGB Values
     const Color darkGreen = {20, 160, 133, 255};
 
@@ -182,6 +184,7 @@ void CheckWin(GridOwner ID)
                 SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
+            resetBoard();
         }
     }
     for (int col = 0; col < 3; col++)
@@ -197,26 +200,31 @@ void CheckWin(GridOwner ID)
                 SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
+
+            resetBoard();
         }
     }
     if ((GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID) ||
         (GameGrid.GridSquares[2].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[6].Owner == ID))
     {
         if (ID == X)
-            {
-                SpriteX.Wins +=1;
-                SpriteX.win = true;
-            }
-            else{
-                SpriteO.Wins +=1;
-                SpriteO.win = true;
-            }
+        {
+            SpriteX.Wins +=1;
+            SpriteX.win = true;
+        }
+        else{
+            SpriteO.Wins +=1;
+            SpriteO.win = true;
+        }
+
+        resetBoard();
     }
 
     if (CheckDraw() && (SpriteX.win != true && SpriteO.win != true))
     {
         SpriteO.win = true;
         SpriteX.win = true;
+        resetBoard();
     }
 
 }
@@ -340,6 +348,7 @@ void resetBoard()
     SpriteX.initialPosition = StaticX;
     SpriteO.initialPosition = StaticO;
     XorO = true;
+    GameGrid.Count = 0;
 }
 
 void DrawMultiplayer()
@@ -395,6 +404,44 @@ void drawWin()
     {
         const char* WinText = "YOU WIN O";
         DrawText(WinText, (ScreenParams.x * -0.0833) , (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
+    }
+}
+
+void AIPAL()
+{
+    srand(time(0));
+    int number;
+    int ins = GameGrid.Count;
+
+    if (user == SPRITE_X)
+    {
+        while (GameGrid.Count == ins)
+        {
+            number = (rand() % 9);
+            std::cout << number;
+            if (GameGrid.GridSquares[number].Owner == EMPTY)
+            {
+                GameGrid.GridSquares[number].Owner = O;
+                XorO = true;
+                GameGrid.Count += 1;
+                CheckWin(O);
+            } 
+        }
+    }
+    else 
+    {
+        while(GameGrid.Count == ins)
+        {
+            number = (rand() % 9);
+            std::cout << number;
+            if (GameGrid.GridSquares[number].Owner == EMPTY)
+            {
+                GameGrid.GridSquares[number].Owner = X;
+                XorO = false;
+                GameGrid.Count += 1;
+                CheckWin(O);
+            }
+        }
     }
 }
 
@@ -463,8 +510,8 @@ void OnStart()
 
         GameGrid.GridSquares[i].Owner = EMPTY;
 
-        int Row = i / 3;
-        int Col = i % 3;
+        int Row = i % 3;
+        int Col = i / 3;
 
         float x = ((float)((Row * tilesize) - tilesize)) - (ScreenParams.x * 0.166);
         float y = ((float)((Col * tilesize) - tilesize));
@@ -489,6 +536,7 @@ void OnStart()
     SpriteO.collider.y = (float)(SpriteO.position.y - (SpriteO.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001)/2));
     SpriteO.collider.width = SpriteO.texture.width * (((ScreenParams.x + ScreenParams.y)/2) * 0.001);
     SpriteO.collider.height = SpriteO.texture.height * (((ScreenParams.x + ScreenParams.y)/2) * 0.001);
+
 }
 
 //Centers Drawn Textures
@@ -542,13 +590,33 @@ void OnUpdate()
         if (HasGridCollision(SpriteX, index) && GameGrid.GridSquares[index].Owner == EMPTY && XorO == true)
         {
             GameGrid.GridSquares[index].Owner = X;
+            GameGrid.Count += 1;
+
+            std::cout << GameGrid.Count;
+
             XorO = false;
+
+            if (Picker == SinglePlayer)
+            {
+                AIPAL();
+            }
+
             CheckWin(X);
         }
         if (HasGridCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY && XorO == false)
         {
             GameGrid.GridSquares[index].Owner = O;
+            GameGrid.Count += 1;
+
+            std::cout << GameGrid.Count;
+
             XorO = true;
+
+            if (Picker == SinglePlayer)
+            {
+                AIPAL();
+            }
+
             CheckWin(O);
         }
 
