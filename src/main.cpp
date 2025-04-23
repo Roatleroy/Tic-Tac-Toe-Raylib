@@ -166,8 +166,7 @@ int main()
 
 }
 
-// Might want to change Check win to check both O and X at the same time so that
-// The AI algorithm can be checked for wins as well. 
+// NEW TRY TO GET RESET FUNCTION TO WORK IN SPECIFIC CIRCUMSTANCES LIKE WHEN A WIN OR DRAW OCCURS. 
 void CheckWin(GridOwner ID)
 {
 
@@ -184,7 +183,7 @@ void CheckWin(GridOwner ID)
                 SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
-            resetBoard();
+            //resetBoard();
         }
     }
     for (int col = 0; col < 3; col++)
@@ -201,7 +200,7 @@ void CheckWin(GridOwner ID)
                 SpriteO.win = true;
             }
 
-            resetBoard();
+            //resetBoard();
         }
     }
     if ((GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID) ||
@@ -217,14 +216,14 @@ void CheckWin(GridOwner ID)
             SpriteO.win = true;
         }
 
-        resetBoard();
+        //resetBoard();
     }
 
     if (CheckDraw() && (SpriteX.win != true && SpriteO.win != true))
     {
         SpriteO.win = true;
         SpriteX.win = true;
-        resetBoard();
+        //resetBoard();
     }
 
 }
@@ -310,6 +309,7 @@ void Choose()
         SpriteO.position = Static;
         SpriteO.initialPosition = Static;
         user = SPRITE_O;
+        AIPAL();
     }
     
 }
@@ -415,7 +415,7 @@ void AIPAL()
 
     if (user == SPRITE_X)
     {
-        while (GameGrid.Count == ins)
+        while (GameGrid.Count == ins && GameGrid.Count != 9)
         {
             number = (rand() % 9);
             std::cout << number;
@@ -430,7 +430,7 @@ void AIPAL()
     }
     else 
     {
-        while(GameGrid.Count == ins)
+        while(GameGrid.Count == ins && GameGrid.Count != 9)
         {
             number = (rand() % 9);
             std::cout << number;
@@ -439,7 +439,7 @@ void AIPAL()
                 GameGrid.GridSquares[number].Owner = X;
                 XorO = false;
                 GameGrid.Count += 1;
-                CheckWin(O);
+                CheckWin(X);
             }
         }
     }
@@ -552,7 +552,6 @@ void CenterSprite(Texture2D Texture, Vector2 Position)
 
 void OnUpdate()
 {  
-
    Vector2 Mouse = GetMousePositionScreenSpace();
 
    if (Picker == SinglePlayer)
