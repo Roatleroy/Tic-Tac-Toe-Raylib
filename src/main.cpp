@@ -31,6 +31,8 @@ enum GridOwner
     X, O, EMPTY
 };
 
+GridOwner MINGRID[9];
+
 struct GridSquare
 {
     GridOwner Owner;
@@ -73,8 +75,12 @@ void home();
 
 void AIPAL();
 
+void drawContinue();
+
+int minmax(bool TRUEFALSE);
+
 //________________________________________________________________
-Vector2 ScreenParams {1200, 720};
+Vector2 ScreenParams {1300, 800};
 
 // System Variables----------------------------------------------------
 Vector2 StaticX = {float(ScreenParams.x * 0.25), -1 * float(ScreenParams.y * 0.16)};
@@ -99,6 +105,14 @@ enum pick
 
 pick Picker = Menu;
 bool XorO = true;
+
+struct TIME
+{
+    int duration;
+    bool truth;
+};
+
+TIME counter;
 
 //_________________________________________________________________
 int main() 
@@ -166,10 +180,10 @@ int main()
 
 }
 
-// NEW TRY TO GET RESET FUNCTION TO WORK IN SPECIFIC CIRCUMSTANCES LIKE WHEN A WIN OR DRAW OCCURS. 
+// Might want to change Check win to check both O and X at the same time so that
+// The AI algorithm can be checked for wins as well. 
 void CheckWin(GridOwner ID)
 {
-
     for (int row = 0; row < 3; row++)
     {
         if (GameGrid.GridSquares[row * 3].Owner == ID && GameGrid.GridSquares[(row * 3) + 1].Owner == ID && GameGrid.GridSquares[(row * 3) + 2].Owner == ID)
@@ -183,7 +197,6 @@ void CheckWin(GridOwner ID)
                 SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
-            //resetBoard();
         }
     }
     for (int col = 0; col < 3; col++)
@@ -199,31 +212,29 @@ void CheckWin(GridOwner ID)
                 SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
-
-            //resetBoard();
         }
     }
     if ((GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID) ||
         (GameGrid.GridSquares[2].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[6].Owner == ID))
     {
         if (ID == X)
-        {
-            SpriteX.Wins +=1;
-            SpriteX.win = true;
-        }
-        else{
-            SpriteO.Wins +=1;
-            SpriteO.win = true;
-        }
-
-        //resetBoard();
+            {
+                SpriteX.Wins +=1;
+                SpriteX.win = true;
+            }
+            else{
+                SpriteO.Wins +=1;
+                SpriteO.win = true;
+            }
     }
 
+}
+
+/*
     if (CheckDraw() && (SpriteX.win != true && SpriteO.win != true))
     {
         SpriteO.win = true;
         SpriteX.win = true;
-        //resetBoard();
     }
 
 }
@@ -239,7 +250,7 @@ bool CheckDraw()
     }
     return true;
 }
-
+*/
 void menu()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
@@ -256,7 +267,6 @@ void menu()
     DrawRectangleLinesEx(Single, 4, RED);
     DrawText(text1, (Single.x + float(ScreenParams.x * 0.023)), (Single.y + float(ScreenParams.x * 0.018)), int((ScreenParams.x + ScreenParams.y)/2) * 0.03, WHITE);
 
-    
     const char* text2 = "Multiplayer";
     DrawRectangle(Multi.x, Multi.y, buttonSize.x, buttonSize.y, BLACK);
     DrawRectangleLinesEx(Multi, 4, RED);
@@ -305,11 +315,16 @@ void Choose()
     }
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(Mouse, Multi))
     {
+        // Sets Initial Position at random position to initalize board for user
+        // If user picks to go second
+        srand(time(0));
+        int number = (rand() % 9);
+        GameGrid.GridSquares[number].Owner = X;
+
         Picker = SinglePlayer;
         SpriteO.position = Static;
         SpriteO.initialPosition = Static;
         user = SPRITE_O;
-        AIPAL();
     }
     
 }
@@ -332,6 +347,8 @@ void home()
     {
         Picker = Menu;
         resetBoard();
+        SpriteX.Wins = 0;
+        SpriteO.Wins = 0;
     }
 }
 
@@ -343,8 +360,6 @@ void resetBoard()
     }
     SpriteO.win = false;
     SpriteX.win = false;
-    SpriteO.Wins = 0;
-    SpriteX.Wins = 0;
     SpriteX.initialPosition = StaticX;
     SpriteO.initialPosition = StaticO;
     XorO = true;
@@ -381,16 +396,67 @@ void DrawMultiplayer()
     CenterSprite(SpriteX.texture, StaticX);
     CenterSprite(SpriteO.texture, StaticO);
 
-   if (SpriteO.win || SpriteX.win )
-   {
+    DrawText(TextFormat("%i", SpriteX.Wins), StaticX.x + ((ScreenParams.x + ScreenParams.y)/2 * 0.1), StaticX.y, 80, BLACK);
+    DrawText(TextFormat("%i", SpriteO.Wins), StaticO.x + ((ScreenParams.x + ScreenParams.y)/2 * 0.1), StaticO.y, 80, BLACK);
+
+    if ((SpriteO.Wins == 5 || SpriteX.Wins == 5) && counter.duration == 0)
+    {
+        drawContinue();
+    }
+
+    if (SpriteX.win || SpriteO.win || GameGrid.Count == 9)
+    {
         drawWin();
-   }
+        counter.duration += 1;
+        if(counter.duration == 180)
+        {
+            counter.duration = 0;
+            resetBoard();
+        }
+    }
+   
+}
+
+void drawContinue()
+{
+    Vector2 mousePosition = GetMousePositionScreenSpace();
+    Vector2 buttonSize = {float(ScreenParams.x * 0.2), float(ScreenParams.y * 0.09)};
+    Vector2 buttonPosition = {0, 0};
+    Rectangle Single = {buttonPosition.x - (buttonSize.x/2) - float(ScreenParams.x * 0.165), (buttonPosition.y - (buttonSize.y/2)) - float(ScreenParams.y * 0.085), buttonSize.x, buttonSize.y};
+    Rectangle Single2 = {buttonPosition.x - (buttonSize.x/2) - float(ScreenParams.x * 0.165), (buttonPosition.y - (buttonSize.y/2)) + float(ScreenParams.y * 0.085), buttonSize.x, buttonSize.y};
+
+    const char* Draw_text = "Would you like to continue?";
+    const char* TXT = "Continue";
+    const char* exit = "HOME";
+   
+    DrawText(Draw_text, (ScreenParams.x * -0.3), (ScreenParams.y * -0.4), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
+    DrawRectangle(Single.x, Single.y, Single.width, Single.height, BLACK);
+    DrawRectangleLinesEx(Single, 4, RED);
+
+    DrawRectangle(Single2.x, Single2.y, Single2.width, Single2.height, BLACK);
+    DrawRectangleLinesEx(Single2, 4, RED);
+    DrawText(exit, (ScreenParams.x * -0.21), (ScreenParams.y * 0.064), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
     
+    DrawText(TXT, Single.x + (ScreenParams.x * 0.03), Single.y + (ScreenParams.y * 0.024), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
+
+    if (CheckCollisionPointRec(mousePosition, Single) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+        resetBoard();
+        SpriteX.Wins = 0;
+        SpriteO.Wins = 0;
+    }
+    if (CheckCollisionPointRec(mousePosition,Single2) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+        Picker = Menu; 
+        resetBoard();
+        SpriteX.Wins = 0;
+        SpriteO.Wins = 0;
+    }
 }
 
 void drawWin()
 {
-    if (SpriteO.win && SpriteX.win)
+    if (!SpriteO.win && !SpriteX.win && GameGrid.Count == 9)
     {
         const char* Draw_Text = "You've Drawn";
         DrawText(Draw_Text, (ScreenParams.x * -0.0833), (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
@@ -409,42 +475,77 @@ void drawWin()
 
 void AIPAL()
 {
-    srand(time(0));
-    int number;
+    int BestScore = 0;
+    int Score = 0;
+    int BestMove;
     int ins = GameGrid.Count;
 
-    if (user == SPRITE_X)
+    if (user == SPRITE_X && XorO != true)
     {
-        while (GameGrid.Count == ins && GameGrid.Count != 9)
+        for (int i = 0; i < 9; i++)
         {
-            number = (rand() % 9);
-            std::cout << number;
-            if (GameGrid.GridSquares[number].Owner == EMPTY)
-            {
-                GameGrid.GridSquares[number].Owner = O;
-                XorO = true;
-                GameGrid.Count += 1;
-                CheckWin(O);
-            } 
-        }
-    }
-    else 
-    {
-        while(GameGrid.Count == ins && GameGrid.Count != 9)
-        {
-            number = (rand() % 9);
-            std::cout << number;
-            if (GameGrid.GridSquares[number].Owner == EMPTY)
-            {
-                GameGrid.GridSquares[number].Owner = X;
-                XorO = false;
-                GameGrid.Count += 1;
-                CheckWin(X);
+            if (GameGrid.GridSquares[i].Owner == EMPTY)
+            { 
+                GameGrid.GridSquares[i].Owner = O;
+                Score = minmax(true);
+                GameGrid.GridSquares[i].Owner = EMPTY;
+                if (Score > BestScore)
+                {
+                    BestScore = Score;
+                    BestMove = i;
+                }
             }
         }
+
+        GameGrid.GridSquares[BestMove].Owner = O;
+        GameGrid.Count += 1;
+        CheckWin(O);
+        XorO = true; 
+    }
+    else if (user == SPRITE_O && XorO != false)
+    {
+        for (int i = 0; i < 9; i++)
+        {
+            if (GameGrid.GridSquares[i].Owner == EMPTY)
+            { 
+                GameGrid.GridSquares[i].Owner = X;
+                Score = minmax(false);
+                GameGrid.GridSquares[i].Owner = EMPTY;
+                if (Score > BestScore)
+                {
+                    BestScore = Score;
+                    BestMove = i;
+                }
+            }
+        }
+
+        GameGrid.GridSquares[BestMove].Owner = X;
+        GameGrid.Count += 1;
+        CheckWin(X);
+        XorO = false; 
     }
 }
 
+int minmax(bool TRUEFALSE)
+{
+    return 1;
+    /*
+    if (TRUEFALSE)
+    {
+        for (int i = 0; i < 9; i++)
+        {
+            if (GameGrid.GridSquares[i].Owner == EMPTY)
+            {
+
+            }
+        }
+    }
+    else
+    {
+
+    }
+    */
+}
 void DrawSinglePlayer()
 {
     for (int i = 0; i < 9; i++)
@@ -471,17 +572,34 @@ void DrawSinglePlayer()
         CenterSprite(SpriteX.texture, SpriteX.position);
         CenterSprite(SpriteX.texture, Static);
         //DrawRectangleLinesEx(SpriteX.collider, 4, RED);
+        DrawText(TextFormat("%i", SpriteX.Wins), StaticX.x + ((ScreenParams.x + ScreenParams.y)/2 * 0.1), StaticX.y, 80, BLACK);
+        DrawText(TextFormat("%i", SpriteO.Wins), StaticO.x + ((ScreenParams.x + ScreenParams.y)/2 * 0.1), StaticO.y, 80, BLACK);
     }
     else
     {
         CenterSprite(SpriteO.texture, SpriteO.position);
         CenterSprite(SpriteO.texture, Static);
         //DrawRectangleLinesEx(SpriteO.collider, 4, RED);
+        DrawText(TextFormat("%i", SpriteX.Wins), StaticX.x + ((ScreenParams.x + ScreenParams.y)/2 * 0.1), StaticX.y, 80, BLACK);
+        DrawText(TextFormat("%i", SpriteO.Wins), StaticO.x + ((ScreenParams.x + ScreenParams.y)/2 * 0.1), StaticO.y, 80, BLACK);
     }
 
-    if (SpriteO.win || SpriteX.win )
+    if ((SpriteO.Wins == 5 || SpriteX.Wins == 5) && counter.duration == 0)
+    {
+        drawContinue();
+    }
+
+    if (SpriteX.win || SpriteO.win || GameGrid.Count == 9)
     {
         drawWin();
+        counter.duration += 1;
+        if(counter.duration == 180)
+        {
+            counter.duration = 0;
+            resetBoard();
+            SpriteO.initialPosition = Static;
+            SpriteX.initialPosition = Static;
+        }
     }
 
 }
@@ -510,8 +628,8 @@ void OnStart()
 
         GameGrid.GridSquares[i].Owner = EMPTY;
 
-        int Row = i % 3;
-        int Col = i / 3;
+        int Row = i / 3;
+        int Col = i % 3;
 
         float x = ((float)((Row * tilesize) - tilesize)) - (ScreenParams.x * 0.166);
         float y = ((float)((Col * tilesize) - tilesize));
@@ -594,12 +712,6 @@ void OnUpdate()
             std::cout << GameGrid.Count;
 
             XorO = false;
-
-            if (Picker == SinglePlayer)
-            {
-                AIPAL();
-            }
-
             CheckWin(X);
         }
         if (HasGridCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY && XorO == false)
@@ -610,13 +722,12 @@ void OnUpdate()
             std::cout << GameGrid.Count;
 
             XorO = true;
-
-            if (Picker == SinglePlayer)
-            {
-                AIPAL();
-            }
-
             CheckWin(O);
+        }
+        
+        if (Picker == SinglePlayer)
+        {
+            AIPAL();
         }
 
         SpriteX.ButtonDown = false;
