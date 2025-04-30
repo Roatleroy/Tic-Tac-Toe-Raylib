@@ -13,6 +13,8 @@ enum SpriteID {
 
 SpriteID user;
 
+// structure that keeps track of the variables for the draggable
+// Sprites
 struct Sprite {
     Texture2D texture;
     Vector2 position;
@@ -25,14 +27,15 @@ struct Sprite {
 };
 //----------------------------------------------------------
 
-// GRID BOXES______________________________________________
+// This enumerator tells the algorithm which Grid is owned by which 
+// Variable. 
 enum GridOwner
 {
     X, O, EMPTY
 };
 
-GridOwner MINGRID[9];
-
+// This struct draws the Grid areas for the sprite to place
+// A texture into
 struct GridSquare
 {
     GridOwner Owner;
@@ -40,6 +43,7 @@ struct GridSquare
     Rectangle Collider;
 };
 
+// This struct declares a instance of a grid for the algorithm to draw
 struct Grid
 {
     GridSquare GridSquares[9];
@@ -49,35 +53,28 @@ struct Grid
 // SYSTEM PROTOTYPES_____________________________________________
 void DrawMultiplayer();
 void DrawSinglePlayer();
+void drawContinue();
+void Choose();
+void menu();
+void home();
 
 void OnUpdate();
-
-void CenterSprite(Texture2D Text, Vector2 Vec);
-
 void OnStart();
 
+void CenterSprite(Texture2D Text, Vector2 Vec);
 bool HasGridCollision(Sprite& Piece, int& index);
 
 Vector2 GetMousePositionScreenSpace();
 
-void CheckWin(GridOwner ID);
-
+void CheckWin(GridOwner ID, Grid OwnerGrid);
 bool CheckDraw();
-
 void drawWin();
 
 void resetBoard();
 
-void Choose();
-
-void menu();
-void home();
-
 void AIPAL();
 
-void drawContinue();
-
-int minmax(bool TRUEFALSE);
+int minmax(bool TRUEFALSE, Grid GameGrid);
 
 //________________________________________________________________
 Vector2 ScreenParams {1300, 800};
@@ -182,48 +179,48 @@ int main()
 
 // Might want to change Check win to check both O and X at the same time so that
 // The AI algorithm can be checked for wins as well. 
-void CheckWin(GridOwner ID)
+void CheckWin(GridOwner ID, Grid OwnerGrid)
 {
     for (int row = 0; row < 3; row++)
     {
-        if (GameGrid.GridSquares[row * 3].Owner == ID && GameGrid.GridSquares[(row * 3) + 1].Owner == ID && GameGrid.GridSquares[(row * 3) + 2].Owner == ID)
+        if (OwnerGrid.GridSquares[row * 3].Owner == ID && OwnerGrid.GridSquares[(row * 3) + 1].Owner == ID && OwnerGrid.GridSquares[(row * 3) + 2].Owner == ID)
         {
             if (ID == X)
             {
-                SpriteX.Wins +=1;
+                //SpriteX.Wins +=1;
                 SpriteX.win = true;
             }
             else{
-                SpriteO.Wins +=1;
+                //SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
         }
     }
     for (int col = 0; col < 3; col++)
     {
-        if (GameGrid.GridSquares[col].Owner == ID && GameGrid.GridSquares[col + 3].Owner == ID && GameGrid.GridSquares[col + 6].Owner == ID)
+        if (OwnerGrid.GridSquares[col].Owner == ID && OwnerGrid.GridSquares[col + 3].Owner == ID && OwnerGrid.GridSquares[col + 6].Owner == ID)
         {
             if (ID == X)
             {
-                SpriteX.Wins +=1;
+                //SpriteX.Wins +=1;
                 SpriteX.win = true;
             }
             else{
-                SpriteO.Wins +=1;
+                //SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
         }
     }
-    if ((GameGrid.GridSquares[0].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[8].Owner == ID) ||
-        (GameGrid.GridSquares[2].Owner == ID && GameGrid.GridSquares[4].Owner == ID && GameGrid.GridSquares[6].Owner == ID))
+    if ((OwnerGrid.GridSquares[0].Owner == ID && OwnerGrid.GridSquares[4].Owner == ID && OwnerGrid.GridSquares[8].Owner == ID) ||
+        (OwnerGrid.GridSquares[2].Owner == ID && OwnerGrid.GridSquares[4].Owner == ID && OwnerGrid.GridSquares[6].Owner == ID))
     {
         if (ID == X)
             {
-                SpriteX.Wins +=1;
+                //SpriteX.Wins +=1;
                 SpriteX.win = true;
             }
             else{
-                SpriteO.Wins +=1;
+                //SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
     }
@@ -317,10 +314,11 @@ void Choose()
     {
         // Sets Initial Position at random position to initalize board for user
         // If user picks to go second
+        /*
         srand(time(0));
         int number = (rand() % 9);
         GameGrid.GridSquares[number].Owner = X;
-
+        */
         Picker = SinglePlayer;
         SpriteO.position = Static;
         SpriteO.initialPosition = Static;
@@ -456,6 +454,7 @@ void drawContinue()
 
 void drawWin()
 {
+
     if (!SpriteO.win && !SpriteX.win && GameGrid.Count == 9)
     {
         const char* Draw_Text = "You've Drawn";
@@ -471,25 +470,29 @@ void drawWin()
         const char* WinText = "YOU WIN O";
         DrawText(WinText, (ScreenParams.x * -0.0833) , (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
     }
+
 }
 
 void AIPAL()
 {
-    int BestScore = 0;
-    int Score = 0;
     int BestMove;
-    int ins = GameGrid.Count;
-
+    //int ins = GameGrid.Count;
     if (user == SPRITE_X && XorO != true)
-    {
+    { 
+        int BestScore = 10000;
+        int Score = 0;
+
         for (int i = 0; i < 9; i++)
         {
             if (GameGrid.GridSquares[i].Owner == EMPTY)
             { 
                 GameGrid.GridSquares[i].Owner = O;
-                Score = minmax(true);
+                GameGrid.Count += 1;
+                Score = minmax(true, GameGrid);
                 GameGrid.GridSquares[i].Owner = EMPTY;
-                if (Score > BestScore)
+                GameGrid.Count -= 1;
+
+                if (Score < BestScore)
                 {
                     BestScore = Score;
                     BestMove = i;
@@ -499,18 +502,25 @@ void AIPAL()
 
         GameGrid.GridSquares[BestMove].Owner = O;
         GameGrid.Count += 1;
-        CheckWin(O);
+        CheckWin(O, GameGrid);
         XorO = true; 
     }
     else if (user == SPRITE_O && XorO != false)
     {
+        int BestScore = -10000;
+        int Score = 0;
+
         for (int i = 0; i < 9; i++)
         {
             if (GameGrid.GridSquares[i].Owner == EMPTY)
             { 
                 GameGrid.GridSquares[i].Owner = X;
-                Score = minmax(false);
+                GameGrid.Count += 1;
+                Score = minmax(false, GameGrid);
+
                 GameGrid.GridSquares[i].Owner = EMPTY;
+                GameGrid.Count -= 1;
+
                 if (Score > BestScore)
                 {
                     BestScore = Score;
@@ -521,31 +531,79 @@ void AIPAL()
 
         GameGrid.GridSquares[BestMove].Owner = X;
         GameGrid.Count += 1;
-        CheckWin(X);
+        CheckWin(X, GameGrid);
         XorO = false; 
     }
+
 }
 
-int minmax(bool TRUEFALSE)
+int minmax(bool TRUEFALSE, Grid GridGame)
 {
-    return 1;
-    /*
-    if (TRUEFALSE)
+    CheckWin(X, GridGame);
+    CheckWin(O, GridGame);
+
+    if (SpriteX.win)
     {
+        SpriteX.win = false;
+        return 1;
+    }
+    else if (SpriteO.win)
+    {
+        SpriteO.win = false;
+        return -1;
+    }
+    else if(!SpriteO.win && !SpriteX.win && GridGame.Count == 9)
+    {
+        GridGame.Count -= 1;
+        return 0;
+    }
+
+    if (TRUEFALSE)
+    { 
+        int bestscore = -10000;
+        int score = 0;
         for (int i = 0; i < 9; i++)
         {
-            if (GameGrid.GridSquares[i].Owner == EMPTY)
+            if (GridGame.GridSquares[i].Owner == EMPTY)
             {
-
+                GridGame.GridSquares[i].Owner = X;
+                GridGame.Count += 1;
+                score = minmax(false, GridGame);
+                GridGame.GridSquares[i].Owner = EMPTY;
+                if (score > bestscore)
+                {
+                    bestscore = score;
+                }
             }
         }
+
+        return bestscore;
     }
     else
     {
+        int bestscore = 10000;
+        int score = 0;
+        for (int i = 0; i < 9; i++)
+        {
+            if (GridGame.GridSquares[i].Owner == EMPTY)
+            {
+                GridGame.GridSquares[i].Owner = O;
+                GridGame.Count += 1;
+                score = minmax(true, GridGame);
+                GridGame.GridSquares[i].Owner = EMPTY;
+                if (score < bestscore)
+                {
+                    bestscore = score;
+                }
 
+            }
+        }
+
+        return bestscore;
     }
-    */
+
 }
+
 void DrawSinglePlayer()
 {
     for (int i = 0; i < 9; i++)
@@ -712,7 +770,7 @@ void OnUpdate()
             std::cout << GameGrid.Count;
 
             XorO = false;
-            CheckWin(X);
+            CheckWin(X, GameGrid);
         }
         if (HasGridCollision(SpriteO, index) && GameGrid.GridSquares[index].Owner == EMPTY && XorO == false)
         {
@@ -722,7 +780,7 @@ void OnUpdate()
             std::cout << GameGrid.Count;
 
             XorO = true;
-            CheckWin(O);
+            CheckWin(O, GameGrid);
         }
         
         if (Picker == SinglePlayer)
