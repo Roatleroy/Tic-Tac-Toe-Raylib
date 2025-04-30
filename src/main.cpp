@@ -51,24 +51,52 @@ struct Grid
 };
 
 // SYSTEM PROTOTYPES_____________________________________________
+
+// Draws the branch multiplayer on the screen
 void DrawMultiplayer();
+
+// Draws the branch Singleplayer on the screen
 void DrawSinglePlayer();
+
+// Once a player has reached 5 wins it displays message to continue of quit
 void drawContinue();
+
+// This is a sub menu for a player to choose to 
+// Play against AI either going first or second
 void Choose();
+
+// This allows the main user pick to play with another human player
+// Or to play with AI
 void menu();
+
+// This displays a button that allows you to return to the menu
 void home();
 
+// Updates the varibales depending on user's interaction with 
+// Objects
 void OnUpdate();
+
+// Initalizing all of the variables in the grid
 void OnStart();
 
+// This centers the point of a sprite on a window 
+//to the middle of the sprite instead of the top left corner
 void CenterSprite(Texture2D Text, Vector2 Vec);
+
+// Checks if the moveable sprite has had a collision with the 
+// Collision point of the Grid sections
 bool HasGridCollision(Sprite& Piece, int& index);
 
+// Gets the mouses current position on the screen
 Vector2 GetMousePositionScreenSpace();
 
+// Checks the Grid Squares for a win
 void CheckWin(GridOwner ID, Grid OwnerGrid);
-bool CheckDraw();
+
+
+// Draws win on the screen when a win occurs
 void drawWin();
+
 
 void resetBoard();
 
@@ -187,11 +215,11 @@ void CheckWin(GridOwner ID, Grid OwnerGrid)
         {
             if (ID == X)
             {
-                //SpriteX.Wins +=1;
+                SpriteX.Wins +=1;
                 SpriteX.win = true;
             }
             else{
-                //SpriteO.Wins +=1;
+                SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
         }
@@ -202,11 +230,11 @@ void CheckWin(GridOwner ID, Grid OwnerGrid)
         {
             if (ID == X)
             {
-                //SpriteX.Wins +=1;
+                SpriteX.Wins +=1;
                 SpriteX.win = true;
             }
             else{
-                //SpriteO.Wins +=1;
+                SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
         }
@@ -216,38 +244,17 @@ void CheckWin(GridOwner ID, Grid OwnerGrid)
     {
         if (ID == X)
             {
-                //SpriteX.Wins +=1;
+                SpriteX.Wins +=1;
                 SpriteX.win = true;
             }
             else{
-                //SpriteO.Wins +=1;
+                SpriteO.Wins +=1;
                 SpriteO.win = true;
             }
     }
 
 }
 
-/*
-    if (CheckDraw() && (SpriteX.win != true && SpriteO.win != true))
-    {
-        SpriteO.win = true;
-        SpriteX.win = true;
-    }
-
-}
-
-bool CheckDraw()
-{
-    for (int i = 0; i < 9; i++)
-    {
-        if (GameGrid.GridSquares[i].Owner == EMPTY)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-*/
 void menu()
 {
     Vector2 Mouse = GetMousePositionScreenSpace();
@@ -455,7 +462,7 @@ void drawContinue()
 void drawWin()
 {
 
-    if (!SpriteO.win && !SpriteX.win && GameGrid.Count == 9)
+    if (!SpriteO.win && !SpriteX.win && GameGrid.Count > 9)
     {
         const char* Draw_Text = "You've Drawn";
         DrawText(Draw_Text, (ScreenParams.x * -0.0833), (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
@@ -545,11 +552,13 @@ int minmax(bool TRUEFALSE, Grid GridGame)
     if (SpriteX.win)
     {
         SpriteX.win = false;
+        SpriteX.Wins -= 1;
         return 1;
     }
     else if (SpriteO.win)
     {
         SpriteO.win = false;
+        SpriteO.Wins -=1;
         return -1;
     }
     else if(!SpriteO.win && !SpriteX.win && GridGame.Count == 9)
