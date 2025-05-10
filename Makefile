@@ -50,7 +50,7 @@ RAYLIB_INSTALL_PATH ?= $(DESTDIR)/lib
 RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)/include
 
 # Library type used for raylib: STATIC (.a) or SHARED (.so/.dll)
-RAYLIB_LIBTYPE        ?= STATIC
+RAYLIB_LIBTYPE        = STATIC
 
 # Build mode for project: DEBUG or RELEASE
 BUILD_MODE            ?= RELEASE
