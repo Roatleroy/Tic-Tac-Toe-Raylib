@@ -462,7 +462,7 @@ void drawContinue()
 void drawWin()
 {
 
-    if (!SpriteO.win && !SpriteX.win && GameGrid.Count > 9)
+    if (!SpriteO.win && !SpriteX.win && GameGrid.Count == 9)
     {
         const char* Draw_Text = "You've Drawn";
         DrawText(Draw_Text, (ScreenParams.x * -0.0833), (ScreenParams.y * -0.375), float((ScreenParams.x + ScreenParams.y)/2) * 0.04, WHITE);
@@ -552,13 +552,13 @@ int minmax(bool TRUEFALSE, Grid GridGame)
     if (SpriteX.win)
     {
         SpriteX.win = false;
-        SpriteX.Wins -= 1;
+        SpriteX.Wins = 0;
         return 1;
     }
     else if (SpriteO.win)
     {
         SpriteO.win = false;
-        SpriteO.Wins -=1;
+        SpriteO.Wins = 0;
         return -1;
     }
     else if(!SpriteO.win && !SpriteX.win && GridGame.Count == 9)
